@@ -48,6 +48,7 @@ template<typename> class Microphys;
 template<typename> class Radiation;
 
 template<typename> class Decay;
+template<typename> class Chemistry;
 template<typename> class Limiter;
 
 template<typename> class Stats;
@@ -95,6 +96,7 @@ class Model
         std::shared_ptr<Radiation<TF>> radiation;
 
         std::shared_ptr<Decay<TF>> decay;
+        std::shared_ptr<Chemistry<TF>> chemistry;
         std::shared_ptr<Limiter<TF>> limiter;
 
         std::shared_ptr<Stats<TF>> stats;
