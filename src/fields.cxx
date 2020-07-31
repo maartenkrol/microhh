@@ -262,6 +262,8 @@ Fields<TF>::Fields(Master& masterin, Grid<TF>& gridin, Input& input) :
         init_prognostic_field(s, s, "-", group_name, gd.sloc);
         sp.at(s)->visc = input.get_item<TF>("fields", "svisc", s);
     }
+    // try allocate field here
+//    init_diagnostic_field("oh","oh","ppb", group_name, gd.sloc);
 
     // Initialize the basic set of fields.
     init_momentum_field("u", "U velocity", "m s-1", group_name, gd.uloc);

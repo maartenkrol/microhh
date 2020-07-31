@@ -49,6 +49,8 @@ class Chemistry
         void init(Input&);                 ///< Initialize the arrays that contain the profiles.
         void create(Input&, Stats<TF>&);   ///< Read the profiles of the forces from the input.
         void exec(double,double);     ///< Add the tendencies belonging to the chemistry processes.
+	void exec_stats(Stats<TF>&);   /// calculate statistics
+	void create_stats(Stats<TF>&);   /// calculate statistics
 
     private:
         Master& master;

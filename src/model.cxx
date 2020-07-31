@@ -251,6 +251,7 @@ void Model<TF>::load()
     radiation->create(*input, *input_nc, *thermo, *stats, *column, *cross, *dump);
     decay->create(*input, *stats);
     chemistry->create(*input, *stats);
+    chemistry->create_stats(*stats);
     limiter->create(*stats);
 
     // Cross and dump both need to be called at/near the
@@ -562,6 +563,7 @@ void Model<TF>::calculate_statistics(int iteration, double time, unsigned long i
         diff     ->exec_stats(*stats);
         budget   ->exec_stats(*stats);
         boundary ->exec_stats(*stats);
+        chemistry->exec_stats(*stats);
         // radiation->exec_stats(*stats, *thermo, *timeloop);
     }
 
