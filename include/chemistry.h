@@ -27,6 +27,7 @@
 #include <string>
 #include <map>
 
+
 class Master;
 class Input;
 template<typename> class Grid;
@@ -47,10 +48,11 @@ class Chemistry
         ~Chemistry();                                       ///< Destructor  of the chemistry class.
 
         void init(Input&);                 ///< Initialize the arrays that contain the profiles.
-        void create(Input&, Stats<TF>&);   ///< Read the profiles of the forces from the input.
-        void exec(double,double);     ///< Add the tendencies belonging to the chemistry processes.
+        void create(Input&, Stats<TF>&, Thermo<TF>&);   ///< Read the profiles of the forces from the input.
+        void exec(Thermo<TF>&,double,double);     ///< Add the tendencies belonging to the chemistry processes.
 	void exec_stats(Stats<TF>&);   /// calculate statistics
 	void create_stats(Stats<TF>&);   /// calculate statistics
+	TF switch_dt;   // to switch between complicated and detailed solver
 
     private:
         Master& master;
@@ -68,6 +70,5 @@ class Chemistry
 
         const std::string tend_name = "chemistry";
         const std::string tend_longname = "Chemistry";
-
 };
 #endif

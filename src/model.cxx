@@ -250,7 +250,7 @@ void Model<TF>::load()
     // Radiation needs to be created after thermo as it needs base profiles.
     radiation->create(*input, *input_nc, *thermo, *stats, *column, *cross, *dump);
     decay->create(*input, *stats);
-    chemistry->create(*input, *stats);
+    chemistry->create(*input, *stats, *thermo);
     chemistry->create_stats(*stats);
     limiter->create(*stats);
 
@@ -372,7 +372,7 @@ void Model<TF>::exec()
                 decay->exec(timeloop->get_sub_time_step(), *stats);
 
                 // Apply the chemistry.
-                chemistry->exec(timeloop->get_sub_time_step(), timeloop->get_dt());
+                chemistry->exec(*thermo, timeloop->get_sub_time_step(), timeloop->get_dt());
 
                 // Apply the large scale forcings. Keep this one always right before the pressure.
                 force->exec(timeloop->get_sub_time_step(), *thermo, *stats);
@@ -791,4 +791,4 @@ void Model<TF>::print_status()
 }
 
 template class Model<double>;
-template class Model<float>;
+//template class Model<float>;
