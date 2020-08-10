@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Integrator.c                 */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -156,7 +156,7 @@ void INTEGRATE( double TIN, double TOUT )
    Nr=Nr+IPAR[14];
    Ng=Ng+IPAR[17];
    //printf("\n Step=%d  Acc=%d  Rej=%d  Singular=%d\n",
-   //      Ns,Na,Nr,Ng);
+    //     Ns,Na,Nr,Ng);
 
 
    if (IERR < 0)

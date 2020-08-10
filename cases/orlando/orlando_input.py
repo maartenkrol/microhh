@@ -122,9 +122,9 @@ no2[:] = 1.0
 no3[:] = 0.1
 ch3o2[:] = 0.1
 isopbo2[:] = 0.1
-no[:] = 1.0
+no[:] = 0.1
 ho2[:] = 0.030
-o3[:] = 50.0
+o3[:] = 30.0
 
 """
 # well mixed profile with jump

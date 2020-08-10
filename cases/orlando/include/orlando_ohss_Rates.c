@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Rates.c                      */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -264,8 +264,21 @@ int Pj_no3b = 4;
 int Pj_ch2or = 5;
 int Pj_ch2om = 6;
 int Pj_ch3o2h = 7;
+double C_M = FIX[0] ;
 double C_H2O = FIX[1] ;
-double C_M = FIX[2] ;
+double scaleh = 100.;
+double vdo3   = (0.0056)/scaleh;
+double vdh2o2 = (0.0059)/scaleh;   // 1/s
+double vdno   = (0.0001)/scaleh;
+double vdno2  = (0.0027)/scaleh;
+double vdhcho = (0.0032)/scaleh;
+double vdisopooh = (0.0250)/scaleh;
+double vdhald    = (0.0032)/scaleh;
+double emvkmacr = (-0.004)*CFACTOR/scaleh;
+double eisop    = (1.1)*CFACTOR/scaleh;
+double eno      = (0.03)*CFACTOR/scaleh;
+printf("  %13.3e  \n",CFACTOR);
+FIX[3] = 1.0;
 
 
 /* End INLINED RCONST                                               */
@@ -313,10 +326,16 @@ double C_M = FIX[2] ;
   RCONST[38] = (ARR2M((double)1.03E-14,(double)1995.0,TEMP));
   RCONST[39] = (ARR2M((double)3.15e-12,(double)450.0,TEMP));
   RCONST[40] = (SUN*jval[Pj_h2o2]);
-  FIX[0] = (2.0*RCONST[0]*VAR[12] + RCONST[7]*VAR[12]*VAR[17] + RCONST[11]*VAR[13]*VAR[17] + RCONST[14]*VAR[16]*VAR[17] + 2.0*RCONST[40]*VAR[0])/
-         ( RCONST[4]*VAR[17] +  RCONST[5]*VAR[12] + RCONST[9]*VAR[11]     +  RCONST[20]*VAR[4] + RCONST[21]*VAR[1] + 
-           RCONST[22]*VAR[5] +  RCONST[23]*VAR[7] + 0.4*RCONST[31]*VAR[6] +  RCONST[33]*VAR[3] + RCONST[37]*VAR[8]);
-
+  RCONST[41] = (vdh2o2);
+  RCONST[42] = (vdo3);
+  RCONST[43] = (vdno);
+  RCONST[44] = (vdno2);
+  RCONST[45] = (vdhcho);
+  RCONST[46] = (vdisopooh);
+  RCONST[47] = (vdhald);
+  RCONST[48] = (eno);
+  RCONST[49] = (eisop);
+  RCONST[50] = (emvkmacr);
 }
 
 /* End of Update_RCONST function                                    */

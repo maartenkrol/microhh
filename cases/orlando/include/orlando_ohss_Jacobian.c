@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Jacobian.c                   */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -49,7 +49,7 @@ void Jac_SP(
 {
 
 /* Local variables                                                  */
-double B[70];                            /* Temporary array */
+double B[80];                            /* Temporary array */
 
 /* B(0) = dA(0)/dV(12)                                              */
   B[0] = RCT[0];
@@ -171,10 +171,24 @@ double B[70];                            /* Temporary array */
   B[68] = RCT[39]*V[7];
 /* B(69) = dA(40)/dV(0)                                             */
   B[69] = RCT[40];
+/* B(70) = dA(41)/dV(0)                                             */
+  B[70] = RCT[41];
+/* B(71) = dA(42)/dV(12)                                            */
+  B[71] = RCT[42];
+/* B(72) = dA(43)/dV(13)                                            */
+  B[72] = RCT[43];
+/* B(73) = dA(44)/dV(11)                                            */
+  B[73] = RCT[44];
+/* B(74) = dA(45)/dV(5)                                             */
+  B[74] = RCT[45];
+/* B(75) = dA(46)/dV(6)                                             */
+  B[75] = RCT[46];
+/* B(76) = dA(47)/dV(3)                                             */
+  B[76] = RCT[47];
 
 /* Construct the Jacobian terms from B's                            */
 /* JVS(0) = Jac_FULL(0,0)                                           */
-  JVS[0] = -B[69];
+  JVS[0] = -B[69]-B[70];
 /* JVS(1) = Jac_FULL(0,7)                                           */
   JVS[1] = 0.29*B[65];
 /* JVS(2) = Jac_FULL(0,12)                                          */
@@ -190,7 +204,7 @@ double B[70];                            /* Temporary array */
 /* JVS(7) = Jac_FULL(2,16)                                          */
   JVS[7] = B[20];
 /* JVS(8) = Jac_FULL(3,3)                                           */
-  JVS[8] = -B[56]-B[58];
+  JVS[8] = -B[56]-B[58]-B[76];
 /* JVS(9) = Jac_FULL(3,13)                                          */
   JVS[9] = 0.87*B[51];
 /* JVS(10) = Jac_FULL(3,14)                                         */
@@ -214,7 +228,7 @@ double B[70];                            /* Temporary array */
 /* JVS(19) = Jac_FULL(4,15)                                         */
   JVS[19] = 0.15*B[52];
 /* JVS(20) = Jac_FULL(5,5)                                          */
-  JVS[20] = -B[2]-B[3]-B[36];
+  JVS[20] = -B[2]-B[3]-B[36]-B[74];
 /* JVS(21) = Jac_FULL(5,6)                                          */
   JVS[21] = 0.69*B[55];
 /* JVS(22) = Jac_FULL(5,7)                                          */
@@ -234,7 +248,7 @@ double B[70];                            /* Temporary array */
 /* JVS(29) = Jac_FULL(5,15)                                         */
   JVS[29] = 0.75*B[47]+0.1*B[52];
 /* JVS(30) = Jac_FULL(6,6)                                          */
-  JVS[30] = -B[53]-B[55];
+  JVS[30] = -B[53]-B[55]-B[75];
 /* JVS(31) = Jac_FULL(6,10)                                         */
   JVS[31] = B[42];
 /* JVS(32) = Jac_FULL(6,15)                                         */
@@ -304,7 +318,7 @@ double B[70];                            /* Temporary array */
 /* JVS(64) = Jac_FULL(11,10)                                        */
   JVS[64] = 0.9*B[44];
 /* JVS(65) = Jac_FULL(11,11)                                        */
-  JVS[65] = -B[1]-B[13]-B[15]-B[19];
+  JVS[65] = -B[1]-B[13]-B[15]-B[19]-B[73];
 /* JVS(66) = Jac_FULL(11,12)                                        */
   JVS[66] = B[11]-B[16];
 /* JVS(67) = Jac_FULL(11,13)                                        */
@@ -323,7 +337,7 @@ double B[70];                            /* Temporary array */
 /* JVS(73) = Jac_FULL(12,11)                                        */
   JVS[73] = B[1]-B[15];
 /* JVS(74) = Jac_FULL(12,12)                                        */
-  JVS[74] = -B[0]-B[6]-B[9]-B[11]-B[16]-B[66];
+  JVS[74] = -B[0]-B[6]-B[9]-B[11]-B[16]-B[66]-B[71];
 /* JVS(75) = Jac_FULL(12,13)                                        */
   JVS[75] = -B[12];
 /* JVS(76) = Jac_FULL(12,14)                                        */
@@ -343,7 +357,7 @@ double B[70];                            /* Temporary array */
 /* JVS(83) = Jac_FULL(13,12)                                        */
   JVS[83] = -B[11];
 /* JVS(84) = Jac_FULL(13,13)                                        */
-  JVS[84] = -B[12]-B[17]-B[21]-B[28]-B[45]-B[51]-B[62];
+  JVS[84] = -B[12]-B[17]-B[21]-B[28]-B[45]-B[51]-B[62]-B[72];
 /* JVS(85) = Jac_FULL(13,14)                                        */
   JVS[85] = -B[29];
 /* JVS(86) = Jac_FULL(13,15)                                        */

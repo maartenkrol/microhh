@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Monitor.c                    */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -35,13 +35,13 @@
   char *  SPC_NAMES[] = {
      "H2O2","CH4","N2O5","HALD","CO","HCHO","ISOPOOH","ISOP",
      "MVKMACR","XO2","ISOPAO2","NO2","O3","NO","CH3O2","ISOPBO2",
-     "NO3","HO2","OH","H2O","M" }; 
+     "NO3","HO2","OH","H2O","M","DUMMY" }; 
 
  /* Indexes of species to look at */
 
   int  LOOKAT[] = {
        0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-      12, 13, 14, 15, 16, 17, 18, 19, 20 }; 
+      12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }; 
 
  /* Indexes of species to monitor */
 
@@ -96,7 +96,17 @@
      "   MVKMACR + OH --> HCHO + 1.5 CH3O2 + HO2",
      "      ISOP + O3 --> 0.29 H2O2 + 0.363 CO + 0.785 HCHO + 0.675 MVKMACR + 0.181 CH3O2 ... etc.",
      "     ISOP + NO3 --> M              ",
-     "           H2O2 --> 2 OH           "
+     "           H2O2 --> 2 OH           ",
+     "           H2O2 --> M              ",
+     "             O3 --> M              ",
+     "             NO --> M              ",
+     "            NO2 --> M              ",
+     "           HCHO --> M              ",
+     "        ISOPOOH --> M              ",
+     "           HALD --> M              ",
+     "          DUMMY --> NO             ",
+     "          DUMMY --> ISOP           ",
+     "          DUMMY --> MVKMACR        "
       }; 
 
 

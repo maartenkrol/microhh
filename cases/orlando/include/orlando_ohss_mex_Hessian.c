@@ -15,7 +15,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
 /* Check for the right number and size of input arguments */
  if ( nrhs != 3 ) {
-   mexErrMsgTxt("orlando_ohss_Hessian requires 3 input vectors: V(18), F(3), RCT(41)");
+   mexErrMsgTxt("orlando_ohss_Hessian requires 3 input vectors: V(18), F(4), RCT(51)");
  }
  mrows =  mxGetM(prhs[0]); mcols = mxGetN(prhs[0]);
  if ( ( mrows != 18 )||( mcols != 1 ) ) {
@@ -24,16 +24,16 @@ void mexFunction( int nlhs, mxArray *plhs[],
    mexErrMsgTxt("First orlando_ohss_Hessian input argument should be a column vector V(18,1)");
  }
  mrows =  mxGetM(prhs[1]); mcols = mxGetN(prhs[1]);
- if ( ( mrows != 3 )||( mcols != 1 ) ) {
+ if ( ( mrows != 4 )||( mcols != 1 ) ) {
    mexPrintf("Second orlando_ohss_Hessian input argument is of size F(%d,%d).",  
                mrows, mcols);
-   mexErrMsgTxt("Second orlando_ohss_Hessian input argument should be a column vector F(3,1)");
+   mexErrMsgTxt("Second orlando_ohss_Hessian input argument should be a column vector F(4,1)");
  }
  mrows =  mxGetM(prhs[2]); mcols = mxGetN(prhs[2]);
- if ( (  mrows != 41 )||( mcols != 1 ) ) {
+ if ( (  mrows != 51 )||( mcols != 1 ) ) {
    mexPrintf("Third orlando_ohss_Hessian input argument is of size RCT(%d,%d).",  
                mrows, mcols);
-   mexErrMsgTxt("Third orlando_ohss_Hessian input argument should be a column vector RCT(41,1)");
+   mexErrMsgTxt("Third orlando_ohss_Hessian input argument should be a column vector RCT(51,1)");
  }
  
 /* Check for the right number of output arguments */

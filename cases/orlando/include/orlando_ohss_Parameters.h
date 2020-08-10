@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Parameters.h                 */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -23,19 +23,19 @@
 
 
 
-#define NSPEC                21          /* Number of chemical species */
+#define NSPEC                22          /* Number of chemical species */
 #define NVAR                 18          /* Number of Variable species */
 #define NVARACT              18          /* Number of Active species */
-#define NFIX                 3           /* Number of Fixed species */
-#define NREACT               41          /* Number of reactions */
+#define NFIX                 4           /* Number of Fixed species */
+#define NREACT               51          /* Number of reactions */
 #define NVARST               0           /* Starting of variables in conc. vect. */
 #define NFIXST               18          /* Starting of fixed in conc. vect. */
 #define NONZERO              114         /* Number of nonzero entries in Jacobian */
 #define LU_NONZERO           129         /* Number of nonzero entries in LU factoriz. of Jacobian */
 #define CNVAR                19          /* (NVAR+1) Number of elements in compressed row format */
-#define CNEQN                42          /* (NREACT+1) Number stoicm elements in compressed col format */
+#define CNEQN                52          /* (NREACT+1) Number stoicm elements in compressed col format */
 #define NHESS                77          /* Length of Sparse Hessian */
-#define NLOOKAT              21          /* Number of species to look at */
+#define NLOOKAT              22          /* Number of species to look at */
 #define NMONITOR             1           /* Number of species to monitor */
 #define NMASS                1           /* Number of atoms to check mass balance */
 
@@ -67,6 +67,7 @@
 #define ind_OH               18         
 #define ind_H2O              19         
 #define ind_M                20         
+#define ind_DUMMY            21         
 
 /* Index declaration for fixed species in FIX                       */
 /*    FIX(indf_spc) = C(ind_spc) = C(NVAR+indf_spc)                 */
@@ -74,7 +75,8 @@
 #define indf_OH              0          
 #define indf_H2O             1          
 #define indf_M               2          
+#define indf_DUMMY           3          
 
-#define NJVRP                60          /* Length of sparse Jacobian JVRP */
+#define NJVRP                67          /* Length of sparse Jacobian JVRP */
 
-#define NSTOICM              126         /* Length of Sparse Stoichiometric Matrix */
+#define NSTOICM              136         /* Length of Sparse Stoichiometric Matrix */

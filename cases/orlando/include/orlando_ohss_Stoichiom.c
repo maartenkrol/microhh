@@ -13,7 +13,7 @@
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
 /* File                 : orlando_ohss_Stoichiom.c                  */
-/* Time                 : Fri Aug  7 21:18:22 2020                  */
+/* Time                 : Sun Aug  9 15:18:54 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
 /* Equation file        : orlando_ohss.kpp                          */
 /* Output root filename : orlando_ohss                              */
@@ -89,6 +89,16 @@ void ReactantProd(
   ARP[38] = V[7]*V[12];
   ARP[39] = V[7]*V[16];
   ARP[40] = V[0];
+  ARP[41] = V[0];
+  ARP[42] = V[12];
+  ARP[43] = V[13];
+  ARP[44] = V[11];
+  ARP[45] = V[5];
+  ARP[46] = V[6];
+  ARP[47] = V[3];
+  ARP[48] = F[3];
+  ARP[49] = F[3];
+  ARP[50] = F[3];
 }
 
 /* End of ReactantProd function                                     */
@@ -237,6 +247,20 @@ void JacReactantProd(
   JVRP[58] = V[7];
 /* JVRP(59) = dARP(40)/dV(0)                                        */
   JVRP[59] = 1;
+/* JVRP(60) = dARP(41)/dV(0)                                        */
+  JVRP[60] = 1;
+/* JVRP(61) = dARP(42)/dV(12)                                       */
+  JVRP[61] = 1;
+/* JVRP(62) = dARP(43)/dV(13)                                       */
+  JVRP[62] = 1;
+/* JVRP(63) = dARP(44)/dV(11)                                       */
+  JVRP[63] = 1;
+/* JVRP(64) = dARP(45)/dV(5)                                        */
+  JVRP[64] = 1;
+/* JVRP(65) = dARP(46)/dV(6)                                        */
+  JVRP[65] = 1;
+/* JVRP(66) = dARP(47)/dV(3)                                        */
+  JVRP[66] = 1;
 }
 
 /* End of JacReactantProd function                                  */
