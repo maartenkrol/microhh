@@ -36,20 +36,21 @@
 
 namespace 
 {
-#include "/Users/krol/kpp/examples/orlando_ohss_Parameters.h"
-#include "/Users/krol/kpp/examples/orlando_ohss_Global.h"
-#include "/Users/krol/kpp/examples/orlando_ohss_Sparse.h"
-#include "/Users/krol/kpp/examples/orlando_ohss_Integrator.c"
-#include "/Users/krol/kpp/examples/orlando_ohss_Function.c"
-#include "/Users/krol/kpp/examples/orlando_ohss_LinearAlgebra.c"
-#include "/Users/krol/kpp/examples/orlando_ohss_JacobianSP.c"
-#include "/Users/krol/kpp/examples/orlando_ohss_Jacobian.c"
+#include "../cases/orlando/include/orlando_ohss_Parameters.h"
+#include "../cases/orlando/include/orlando_ohss_Global.h"
+#include "../cases/orlando/include/orlando_ohss_Sparse.h"
+#include "../cases/orlando/include/orlando_ohss_Integrator.c"
+#include "../cases/orlando/include/orlando_ohss_Function.c"
+#include "../cases/orlando/include/orlando_ohss_LinearAlgebra.c"
+#include "../cases/orlando/include/orlando_ohss_JacobianSP.c"
+#include "../cases/orlando/include/orlando_ohss_Jacobian.c"
 	
 
 double C[NSPEC];                         /* Concentration of all species */
 double * VAR = & C[0];
 double * FIX = & C[19];
 double RCONST[NREACT];                   /* Rate constants (global) */
+double Vdot[NSPEC];                      /* Time derivative of variable species concentrations */
 double TIME;                             /* Current integration time */
 double SUN;                              /* Sunlight intensity between [0,1] */
 double TEMP;                             /* Temperature */
@@ -62,6 +63,8 @@ double RTOL[NVAR];                       /* Relative tolerance */
 double STEPMIN;                          /* Lower bound for integration step */
 double STEPMAX;                          /* Upper bound for integration step */
 double CFACTOR;                          /* Conversion factor for concentration units */
+
+
 
 	template<typename TF>
 	TF  ARRM( TF A0, TF B0, TF C0, TF TEMP )
@@ -152,25 +155,49 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}
 
     template<typename TF>
+    void isop_stat(
+            const TF* tisop, const TF* isop, 
+	    const int istart, const int iend, const int jstart, const int jend, const int kstart, const int kend,
+            const int jj, const int kk)
+    {
+        for (int k=kstart; k<kend; ++k)
+	{
+	    TF iso_mean = TF(0.0);
+	    TF iso_tend = TF(0.0);
+	    int cnt = 0;
+            for (int j=jstart; j<jend; ++j)
+                #pragma ivdep
+                for (int i=istart; i<iend; ++i)
+                {
+                    const int ijk = i + j*jj + k*kk;
+		    iso_mean += isop[ijk];
+		    iso_tend += tisop[ijk];
+		    cnt += 1;
+		}
+	    printf("%i  %12.3e ppb  %12.3e ppb/hour \n",k,iso_mean/cnt,iso_tend*3600.0/cnt);
+	}
+    }
+
+    template<typename TF>
     void pss(
-            TF* restrict tch4, const TF* ch4, 
             TF* restrict th2o2, const TF* h2o2, 
+            TF* restrict tch4, const TF* ch4, 
             TF* restrict tn2o5, const TF* n2o5, 
             TF* restrict thald, const TF* hald, 
             TF* restrict tco, const TF* co, 
             TF* restrict thcho, const TF* hcho, 
             TF* restrict tisopooh, const TF* isopooh, 
             TF* restrict tisop, const TF* isop, 
-            TF* restrict txo2, const TF* xo2, 
             TF* restrict tmvkmacr, const TF* mvkmacr, 
+            TF* restrict txo2, const TF* xo2, 
             TF* restrict tisopao2, const TF* isopao2, 
             TF* restrict tno2, const TF* no2, 
-            TF* restrict tho2, const TF* ho2, 
-            TF* restrict tno, const TF* no, 
-            TF* restrict tisopbo2, const TF* isopbo2, 
-            TF* restrict tch3o2, const TF* ch3o2, 
-            TF* restrict tno3, const TF* no3, 
             TF* restrict to3, const TF* o3, 
+            TF* restrict tno, const TF* no, 
+            TF* restrict tch3o2, const TF* ch3o2, 
+            TF* restrict tisopbo2, const TF* isopbo2, 
+            TF* restrict tno3, const TF* no3, 
+            TF* restrict tho2, const TF* ho2, 
             TF*oh,
 	    const TF* restrict qt,
 	    const TF* restrict Temp, const TF rkdt, const TF switch_dt,
@@ -192,10 +219,18 @@ double CFACTOR;                          /* Conversion factor for concentration 
         const TF xmair = 28.9647;       // Molar mass of dry air  [kg kmol-1]
         const TF Na    = 6.02214086e23; // Avogadros number [molecules mol-1]
 	TF C_M = 2.55e19;
-	TF C_H2O = 0.01*C_M;
 	TF tscale[NVAR] ;
-	TF deriv[NVAR] ;
 	TF VAR0[NVAR] ;
+	TF vdo3   = (0.0);
+	TF vdh2o2 = (0.0);
+	TF vdno   = (0.0);
+	TF vdno2  = (0.0);
+	TF vdhcho = (0.0);
+	TF vdisopooh = (0.0);
+	TF vdhald    = (0.0);
+	TF emvkmacr = (0.0);
+	TF eisop    = (0.0);
+	TF eno      = (0.0);
 
       
 	for( int i = 0; i < NVAR; i++ ) {
@@ -205,16 +240,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}
 	TF STEPMIN = 0.01;
 	TF STEPMAX = 90;
-	
-	TF A[41];
-	TF V[19];
-	TF TEMP = 0.0;
 
-	TF vdo3 = 0.0;
-	TF vdno = 0.0;
-	TF vdno2 = 0.0;
-	TF vdho2 = 0.0;
-	TF vdoh = 0.0;
 	VAR = &C[0];
 	FIX = &C[18];
         int nkpp = 0;
@@ -224,27 +250,39 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	    C_M = (TF)1e-3*rhoref[k]*Na/xmair;   // molecules/cm3 for chemistry!
 	    const TF CFACTOR = C_M*(TF)1e-9 ;               // from ppb (units mixing ratio) to molecules/cm3
             if (k==kstart) {
-	        vdo3  = TF(0.005)/dz[k];   // 1/s
-	        vdno  = TF(0.002)/dz[k];   // 1/s
-	        vdno2 = TF(0.005)/dz[k];   // 1/s
-	        vdho2 = TF(0.010)/dz[k];   // 1/s
-	        vdoh  = TF(0.010)/dz[k];   // 1/s
+	        vdo3   = TF(0.0056)/dz[k];   // 1/s
+	        vdh2o2 = TF(0.0059)/dz[k];   // 1/s
+	        vdno   = TF(0.0001)/dz[k];   // 1/s
+	        vdno2  = TF(0.0027)/dz[k];   // 1/s
+		vdhcho = TF(0.0032)/dz[k];   // 1/s
+		vdisopooh = TF(0.0250)/dz[k];   // 1/s
+		vdhald    = TF(0.0032)/dz[k];   // 1/s
+		// emission/deposition fluxes:
+		emvkmacr = TF(-0.004)*CFACTOR/dz[k]; // #/cm3 per s, seen orlando protocol
+		//eisop    = TF(1.1)*CFACTOR/dz[k];
+		eisop    = TF(0.0);
+		eno      = TF(0.03)*CFACTOR/dz[k];
 	    }
             else {
-	        vdo3  = TF(0.0);
-	        vdno  = TF(0.0);
-	        vdno2 = TF(0.0);
-	        vdho2 = TF(0.0);
-	        vdoh  = TF(0.0);
+	        vdo3   = TF(0.0);
+	        vdh2o2 = TF(0.0);
+	        vdno   = TF(0.0);
+	        vdno2  = TF(0.0);
+		vdhcho = TF(0.0);
+		vdisopooh = TF(0.0);
+		vdhald    = TF(0.0);
+		emvkmacr= TF(0.0);
+		eisop   = TF(0.0);
+		eno     = TF(0.0);
 	    }
             for (int j=jstart; j<jend; ++j)
                 #pragma ivdep
                 for (int i=istart; i<iend; ++i)
                 {
                     const int ijk = i + j*jj + k*kk;
-		    C_H2O = qt[ijk]*xmair*C_M/xmh2o;                   // kg/kg --> molH2O/molAir --*C_M--> molecules/cm3
-		    const TF SUN = 1.0; 
-		    TEMP = Temp[ijk];
+		    const TF C_H2O = qt[ijk]*xmair*C_M/xmh2o;                   // kg/kg --> molH2O/molAir --*C_M--> molecules/cm3
+		    const TF SUN = 0.1; 
+		    const TF TEMP = Temp[ijk];
 		    // convert to molecules per cm3:
                     VAR[0] = std::max(h2o2[ijk]*CFACTOR,(TF)0.0);
 		    VAR[1] = std::max(ch4[ijk]*CFACTOR,(TF)0.0);
@@ -307,19 +345,31 @@ double CFACTOR;                          /* Conversion factor for concentration 
                     RCONST[38] = (ARR2M((TF)1.03E-14,(TF)1995.0,TEMP));
                     RCONST[39] = (ARR2M((TF)3.15e-12,(TF)450.0,TEMP));
                     RCONST[40] = (SUN*jval[Pj_h2o2]);
+		    RCONST[41] = (vdh2o2);
+		    RCONST[42] = (vdo3);
+		    RCONST[43] = (vdno);
+		    RCONST[44] = (vdno2);
+		    RCONST[45] = (vdhcho);
+		    RCONST[46] = (vdisopooh);
+		    RCONST[47] = (vdhald);
+		    RCONST[48] = (eno);
+		    RCONST[49] = (eisop);
+		    RCONST[50] = (emvkmacr);
+
 
 		    FIX[0] = ((TF)2.0*RCONST[0]*VAR[12] + RCONST[7]*VAR[12]*VAR[17] + RCONST[11]*VAR[13]*VAR[17] + RCONST[14]*VAR[16]*VAR[17] + (TF)2.0*RCONST[40]*VAR[0])/
 			        ( RCONST[4]*VAR[17] +  RCONST[5]*VAR[12] +     RCONST[9]*VAR[11] +  RCONST[20]*VAR[4] + RCONST[21]*VAR[1] + 
 		       	          RCONST[22]*VAR[5] +  RCONST[23]*VAR[7] + 0.4*RCONST[31]*VAR[6] +  RCONST[33]*VAR[3] + RCONST[37]*VAR[8]);
 		    FIX[1] = C_H2O;
                     FIX[2] = C_M;
+		    FIX[3] = (TF)1.0;    // species added to emit   
 		    oh[ijk] = FIX[0]/CFACTOR;
 
-		    Fun( VAR, FIX, RCONST, deriv);
-		    // for (int l=0; l<NVAR; ++l) printf (" %i %13.3e %13.3e %13.3e \n", l,VAR[l],deriv[l],VAR[l]/ABS(deriv[l]));
+		    Fun(VAR,FIX,RCONST,Vdot);
+		    //for (int l=0; l<NVAR; ++l) printf (" %i %13.3e %13.3e %13.3e \n", l,VAR[l],Vdot[l],VAR[l]/ABS(Vdot[l]));
 		    TF mint = (TF)1e20;
 		    for (int l=0; l<NVAR; ++l)
-			    if (ABS(deriv[l]) > (TF)1e-5 && VAR[l]> (TF)1e-5) mint = std::min(mint,VAR[l]/ABS(deriv[l])); 
+			    if (ABS(Vdot[l]) > (TF)1e-5 && VAR[l]> (TF)1e-5) mint = std::min(mint,VAR[l]/ABS(Vdot[l])); 
 			//printf (" %i %13.3e \n ", ijk, mint);
 
 		    if (mint < switch_dt)
@@ -351,24 +401,24 @@ double CFACTOR;                          /* Conversion factor for concentration 
 		    else
 		    {
 			    nderiv += 1;
-			    th2o2[ijk] =    deriv[0]/CFACTOR;
-   			    tch4[ijk] =     deriv[1]/CFACTOR;
-			    tn2o5[ijk] =    deriv[2]/CFACTOR;
-			    thald[ijk] =    deriv[3]/CFACTOR;
-			    tco[ijk] =      deriv[4]/CFACTOR;
-			    thcho[ijk] =    deriv[5]/CFACTOR;
-			    tisopooh[ijk] = deriv[6]/CFACTOR;
-			    tisop[ijk] =    deriv[7]/CFACTOR;
-			    tmvkmacr[ijk] = deriv[8]/CFACTOR;
-			    txo2[ijk] =     deriv[9]/CFACTOR;
-			    tisopao2[ijk] = deriv[10]/CFACTOR;
-			    tno2[ijk] =     deriv[11]/CFACTOR;
-			    to3[ijk] =      deriv[12]/CFACTOR;
-			    tno[ijk] =      deriv[13]/CFACTOR;
-			    tch3o2[ijk] =   deriv[14]/CFACTOR;
-			    tisopbo2[ijk] = deriv[15]/CFACTOR;
-			    tno3[ijk] =     deriv[16]/CFACTOR;
-			    tho2[ijk] =     deriv[17]/CFACTOR;
+			    th2o2[ijk] =    Vdot[0]/CFACTOR;
+   			    tch4[ijk] =     Vdot[1]/CFACTOR;
+			    tn2o5[ijk] =    Vdot[2]/CFACTOR;
+			    thald[ijk] =    Vdot[3]/CFACTOR;
+			    tco[ijk] =      Vdot[4]/CFACTOR;
+			    thcho[ijk] =    Vdot[5]/CFACTOR;
+			    tisopooh[ijk] = Vdot[6]/CFACTOR;
+			    tisop[ijk] =    Vdot[7]/CFACTOR;
+			    tmvkmacr[ijk] = Vdot[8]/CFACTOR;
+			    txo2[ijk] =     Vdot[9]/CFACTOR;
+			    tisopao2[ijk] = Vdot[10]/CFACTOR;
+			    tno2[ijk] =     Vdot[11]/CFACTOR;
+			    to3[ijk] =      Vdot[12]/CFACTOR;
+			    tno[ijk] =      Vdot[13]/CFACTOR;
+			    tch3o2[ijk] =   Vdot[14]/CFACTOR;
+			    tisopbo2[ijk] = Vdot[15]/CFACTOR;
+			    tno3[ijk] =     Vdot[16]/CFACTOR;
+			    tho2[ijk] =     Vdot[17]/CFACTOR;
 		    }
 		    tscale[0] = std::min(tscale[0],h2o2[ijk]/ABS(th2o2[ijk]));
 		    tscale[1] = std::min(tscale[1],ch4[ijk]/ABS(tch4[ijk]));
@@ -390,10 +440,10 @@ double CFACTOR;                          /* Conversion factor for concentration 
 		    tscale[17] = std::min(tscale[17],ho2[ijk]/ABS(tho2[ijk]));
                 }
 	}
-        printf ("N2O5:  %12.3e ", tscale[2] );
-        printf ("NO3:  %12.3e ", tscale[16] );
-        printf (" %i  %i  ", nkpp, nderiv);
-        printf ("\n");
+        //printf ("ISOP:  %12.3e ", tscale[7] );
+        //printf ("NO3:  %12.3e ", tscale[16] );
+        //printf (" %i  %i  ", nkpp, nderiv);
+        //printf ("\n");
     }
 
 }
@@ -472,6 +522,8 @@ void Chemistry<TF>::create(Input& inputin, Stats<TF>& stats, Thermo<TF>&)
 template <typename TF>
 void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
 {
+    for (auto& it : fields.st)
+        if( cmap[it.first].type == Chemistry_type::disabled) return;
     auto& gd = grid.get_grid_data();
     
     auto Temp = fields.get_tmp();
@@ -489,30 +541,35 @@ void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
 	    throw std::runtime_error("Invalid time step in RK3");
  
     pss<TF>(
-	    fields.st.at("ch4")    ->fld.data(), fields.sp.at("ch4")->fld.data(), 
 	    fields.st.at("h2o2")   ->fld.data(), fields.sp.at("h2o2")->fld.data(), 
+	    fields.st.at("ch4")    ->fld.data(), fields.sp.at("ch4")->fld.data(), 
 	    fields.st.at("n2o5")   ->fld.data(), fields.sp.at("n2o5")->fld.data(), 
 	    fields.st.at("hald")   ->fld.data(), fields.sp.at("hald")->fld.data(), 
 	    fields.st.at("co")     ->fld.data(), fields.sp.at("co")->fld.data(), 
 	    fields.st.at("hcho")   ->fld.data(), fields.sp.at("hcho")->fld.data(), 
 	    fields.st.at("isopooh")->fld.data(), fields.sp.at("isopooh")->fld.data(), 
 	    fields.st.at("isop")   ->fld.data(), fields.sp.at("isop")->fld.data(), 
-	    fields.st.at("xo2")    ->fld.data(), fields.sp.at("xo2")->fld.data(), 
 	    fields.st.at("mvkmacr")->fld.data(), fields.sp.at("mvkmacr")->fld.data(), 
+	    fields.st.at("xo2")    ->fld.data(), fields.sp.at("xo2")->fld.data(), 
 	    fields.st.at("isopao2")->fld.data(), fields.sp.at("isopao2")->fld.data(), 
 	    fields.st.at("no2")    ->fld.data(), fields.sp.at("no2")->fld.data(), 
-	    fields.st.at("ho2")    ->fld.data(), fields.sp.at("ho2")->fld.data(), 
-	    fields.st.at("no")     ->fld.data(), fields.sp.at("no")->fld.data(), 
-	    fields.st.at("isopbo2")->fld.data(), fields.sp.at("isopbo2")->fld.data(), 
-	    fields.st.at("ch3o2")  ->fld.data(), fields.sp.at("ch3o2")->fld.data(), 
-	    fields.st.at("no3")    ->fld.data(), fields.sp.at("no3")->fld.data(), 
 	    fields.st.at("o3")     ->fld.data(), fields.sp.at("o3")->fld.data(), 
+	    fields.st.at("no")     ->fld.data(), fields.sp.at("no")->fld.data(), 
+	    fields.st.at("ch3o2")  ->fld.data(), fields.sp.at("ch3o2")->fld.data(), 
+	    fields.st.at("isopbo2")->fld.data(), fields.sp.at("isopbo2")->fld.data(), 
+	    fields.st.at("no3")    ->fld.data(), fields.sp.at("no3")->fld.data(), 
+	    fields.st.at("ho2")    ->fld.data(), fields.sp.at("ho2")->fld.data(), 
 	    fields.sd.at("oh")     ->fld.data(),
 	    fields.sp.at("qt")     ->fld.data(),
 	    Temp ->fld.data(), rkdt, switch_dt,
 	    gd.istart, gd.iend, gd.jstart, gd.jend, gd.kstart, gd.kend,
 	    gd.icells, gd.ijcells, gd.dz.data(), fields.rhoref.data());
     fields.release_tmp(Temp);
+
+    isop_stat<TF>(
+	    fields.st.at("isop")   ->fld.data(), fields.sp.at("isop")->fld.data(), 
+	    gd.istart, gd.iend, gd.jstart, gd.jend, gd.kstart, gd.kend,
+	    gd.icells, gd.ijcells);
 }
 #endif
 
