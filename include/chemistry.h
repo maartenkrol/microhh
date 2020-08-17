@@ -26,6 +26,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "timeloop.h"
 
 
 class Master;
@@ -48,11 +49,11 @@ class Chemistry
         ~Chemistry();                                       ///< Destructor  of the chemistry class.
 
         void init(Input&);                 ///< Initialize the arrays that contain the profiles.
-        void create(Input&, Stats<TF>&, Thermo<TF>&);   ///< Read the profiles of the forces from the input.
+        void create(Netcdf_handle&);   ///< Read the profiles of the forces from the input.
+        void update_time_dependent(Timeloop<TF>&); ///< Update the time dependent parameters.
         void exec(Thermo<TF>&,double,double);     ///< Add the tendencies belonging to the chemistry processes.
 	void exec_stats(Stats<TF>&);   /// calculate statistics
 	void create_stats(Stats<TF>&);   /// calculate statistics
-	TF switch_dt;   // to switch between complicated and detailed solver
 
     private:
         Master& master;
@@ -67,6 +68,22 @@ class Chemistry
 
         typedef std::map<std::string, Chemistry_var> Chemistry_map;
         Chemistry_map cmap;
+
+	TF switch_dt;   // to switch between complicated and detailed solver
+	std::vector<std::string> jname={"jo31d","jh2o2","jno2","jno3a","jno3b","jch2or","jch2om","jch3o2h"};
+	std::vector<std::string> ename={"emi_isop"};
+        TF jval[8];   // time-interpolated value to pass to the chemistry routine
+        TF emval[1];
+	std::vector<TF> time;
+	std::vector<TF> jo31d;
+	std::vector<TF> jh2o2;
+	std::vector<TF> jno2;
+	std::vector<TF> jno3a;
+	std::vector<TF> jno3b;
+	std::vector<TF> jch2or;
+	std::vector<TF> jch2om;
+	std::vector<TF> jch3o2h;
+	std::vector<TF> emi_isop;
 
         const std::string tend_name = "chemistry";
         const std::string tend_longname = "Chemistry";

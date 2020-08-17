@@ -250,7 +250,7 @@ void Model<TF>::load()
     // Radiation needs to be created after thermo as it needs base profiles.
     radiation->create(*input, *input_nc, *thermo, *stats, *column, *cross, *dump);
     decay->create(*input, *stats);
-    chemistry->create(*input, *stats, *thermo);
+    chemistry->create(*input_nc);
     chemistry->create_stats(*stats);
     limiter->create(*stats);
 
@@ -323,9 +323,10 @@ void Model<TF>::exec()
             while (true)
             {
                 // Update the time dependent parameters.
-                boundary->update_time_dependent(*timeloop);
-                thermo  ->update_time_dependent(*timeloop);
-                force   ->update_time_dependent(*timeloop);
+                boundary ->update_time_dependent(*timeloop);
+                thermo   ->update_time_dependent(*timeloop);
+                force    ->update_time_dependent(*timeloop);
+                chemistry->update_time_dependent(*timeloop);
 
                 // Set the boundary conditions.
                 boundary->exec(*thermo);
