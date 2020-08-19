@@ -3,28 +3,31 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 
 start = 0
-end = 19
-step = 2
+end = 157
+step = 10
 
-stats = nc.Dataset("drycblles_default_0000000.nc", "r")
+stats = nc.Dataset("orlando.default.0000000.nc", "r")
 t = stats.variables["time"][start:end]
 z = stats.variables["z"][:]
 zh = stats.variables["zh"][:]
-st = stats.groups["default"].variables["th"][start:end, :]
+st = stats.groups["thermo"].variables["thl"][start:end, :]
 evisct = stats.groups["default"].variables["evisc"][start:end, :]
+ut = stats.groups["default"].variables["u"][start:end, :]
+vt = stats.groups["default"].variables["v"][start:end, :]
 u2t = stats.groups["default"].variables["u_2"][start:end, :]
 v2t = stats.groups["default"].variables["v_2"][start:end, :]
 w2t = stats.groups["default"].variables["w_2"][start:end, :]
-s2t = stats.groups["default"].variables["th_2"][start:end, :]
-sturbt = stats.groups["default"].variables["th_w"][start:end, :]
-sdifft = stats.groups["default"].variables["th_diff"][start:end, :]
-sfluxt = stats.groups["default"].variables["th_flux"][start:end, :]
-sgradt = stats.groups["default"].variables["th_grad"][start:end, :]
+s2t = stats.groups["thermo"].variables["thl_2"][start:end, :]
+sturbt = stats.groups["thermo"].variables["thl_w"][start:end, :]
+sdifft = stats.groups["thermo"].variables["thl_diff"][start:end, :]
+sfluxt = stats.groups["thermo"].variables["thl_flux"][start:end, :]
+sgradt = stats.groups["thermo"].variables["thl_grad"][start:end, :]
 
 s = np.mean(st, 0)
-evisc = np.mean(evisct, 0)
+#evisc = np.mean(evisct, 0)
 
 u2 = np.mean(u2t, 0)
+u = np.mean(ut, 0)
 v2 = np.mean(v2t, 0)
 w2 = np.mean(w2t, 0)
 s2 = np.mean(s2t, 0)
@@ -67,8 +70,26 @@ plt.ylabel(r'$z [m]$')
 
 plt.figure()
 for n in range(start, end, step):
+    plt.plot(ut[n, :], z)
+plt.xlabel(r'$u [m s^{-1}]$')
+plt.ylabel(r'$z [m]$')
+
+plt.figure()
+for n in range(start, end, step):
+    plt.plot(vt[n, :], z)
+plt.xlabel(r'$v [m s^{-1}]$')
+plt.ylabel(r'$z [m]$')
+
+plt.figure()
+for n in range(start, end, step):
     plt.plot(w2t[n, :], zh)
 plt.xlabel(r'$w^2 [m^2 s^{-2}]$')
+plt.ylabel(r'$z [m]$')
+
+plt.figure()
+for n in range(start, end, step):
+    plt.plot(sfluxt[n, :], zh)
+plt.xlabel(r'$\overline{w\theta} [K m s^{-1}]$')
 plt.ylabel(r'$z [m]$')
 
 plt.figure()
