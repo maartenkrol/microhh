@@ -12,11 +12,11 @@
 /*        M. Damian, Villanova University, USA                      */
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
-/* File                 : orlando_ohss_Global.h                     */
-/* Time                 : Sun Aug  9 15:18:54 2020                  */
+/* File                 : orlando_Global.h                          */
+/* Time                 : Wed Aug 19 11:17:37 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
-/* Equation file        : orlando_ohss.kpp                          */
-/* Output root filename : orlando_ohss                              */
+/* Equation file        : orlando.kpp                               */
+/* Output root filename : orlando                                   */
 /*                                                                  */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -24,6 +24,7 @@
 
 
 /* Declaration of global variables                                  */
+
 extern double C[NSPEC];                         /* Concentration of all species */
   extern double * VAR;
   extern double * FIX;

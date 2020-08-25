@@ -530,9 +530,9 @@ void Fields<TF>::exec_stats(Stats<TF>& stats)
     stats.calc_stats("p", *sd.at("p"), no_offset, no_threshold);
 
     // Calculate covariances
-    for (auto& it1 : ap)
+    for (auto& it1 : a)
     {
-        for (auto& it2 : ap)
+        for (auto& it2 : a)
         {
             for (int pow1 = 1; pow1<5; ++pow1)
             {
@@ -859,9 +859,9 @@ void Fields<TF>::create_stats(Stats<TF>& stats)
         stats.add_profs(*sd.at("p"), "z", stat_op_p, group_name);
 
         // Covariances
-        for (auto& it1 : ap)
+        for (auto& it1 : a)
         {
-            for (auto& it2 : ap)
+            for (auto& it2 : a)
             {
                 std::string locstring;
                 if (it2.first == "w")
@@ -888,8 +888,10 @@ void Fields<TF>::create_column(Column<TF>& column)
 
         for (auto& it : sp)
             column.add_prof(it.first, it.second->longname, it.second->unit, "z");
+        for (auto& it : sd)
+            column.add_prof(it.first, it.second->longname, it.second->unit, "z");
 
-        column.add_prof(sd.at("p")->name, sd.at("p")->longname, sd.at("p")->unit, "z");
+        //column.add_prof(sd.at("p")->name, sd.at("p")->longname, sd.at("p")->unit, "z");
     }
 }
 
@@ -1059,8 +1061,10 @@ void Fields<TF>::exec_column(Column<TF>& column)
 
     for (auto& it : sp)
         column.calc_column(it.first, it.second->fld.data(), no_offset);
+    for (auto& it : sd)
+        column.calc_column(it.first, it.second->fld.data(), no_offset);
 
-    column.calc_column("p", sd.at("p")->fld.data(), no_offset);
+    //column.calc_column("p", sd.at("p")->fld.data(), no_offset);
 }
 #endif
 

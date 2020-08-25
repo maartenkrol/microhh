@@ -49,11 +49,10 @@ class Chemistry
         ~Chemistry();                                       ///< Destructor  of the chemistry class.
 
         void init(Input&);                 ///< Initialize the arrays that contain the profiles.
-        void create(Netcdf_handle&);   ///< Read the profiles of the forces from the input.
+        void create(const Timeloop<TF>&, std::string, Netcdf_handle&, Stats<TF>&);   ///< Read the profiles of the forces from the input.
         void update_time_dependent(Timeloop<TF>&); ///< Update the time dependent parameters.
         void exec(Thermo<TF>&,double,double);     ///< Add the tendencies belonging to the chemistry processes.
-	void exec_stats(Stats<TF>&);   /// calculate statistics
-	void create_stats(Stats<TF>&);   /// calculate statistics
+	void exec_stats(const int, const double, Stats<TF>&);   /// calculate statistics
 
     private:
         Master& master;
@@ -69,6 +68,8 @@ class Chemistry
         typedef std::map<std::string, Chemistry_var> Chemistry_map;
         Chemistry_map cmap;
 
+	Mask<TF> m;     // borrow from Stats to gather statistics chemistry
+        int statistics_counter;
 	TF switch_dt;   // to switch between complicated and detailed solver
 	std::vector<std::string> jname={"jo31d","jh2o2","jno2","jno3a","jno3b","jch2or","jch2om","jch3o2h"};
 	std::vector<std::string> ename={"emi_isop"};
@@ -84,6 +85,8 @@ class Chemistry
 	std::vector<TF> jch2om;
 	std::vector<TF> jch3o2h;
 	std::vector<TF> emi_isop;
+	std::vector<TF> rfa;
+	TF trfa;
 
         const std::string tend_name = "chemistry";
         const std::string tend_longname = "Chemistry";

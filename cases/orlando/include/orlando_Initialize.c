@@ -12,11 +12,11 @@
 /*        M. Damian, Villanova University, USA                      */
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
-/* File                 : orlando_ohss_Initialize.c                 */
-/* Time                 : Sun Aug  9 15:18:54 2020                  */
+/* File                 : orlando_Initialize.c                      */
+/* Time                 : Wed Aug 19 11:17:37 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
-/* Equation file        : orlando_ohss.kpp                          */
-/* Output root filename : orlando_ohss                              */
+/* Equation file        : orlando.kpp                               */
+/* Output root filename : orlando                                   */
 /*                                                                  */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "orlando_ohss_Parameters.h"
-#include "orlando_ohss_Global.h"
-#include "orlando_ohss_Sparse.h"
+#include "orlando_Parameters.h"
+#include "orlando_Global.h"
+#include "orlando_Sparse.h"
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -52,28 +52,27 @@ double x;
   for( i = 0; i < NFIX; i++ )
     FIX[i] = x;
 
-  VAR[0] = (2.0)*CFACTOR;
-  VAR[1] = (1800.0)*CFACTOR;
+  VAR[0] = (1800.0)*CFACTOR;
+  VAR[1] = (2.0)*CFACTOR;
   VAR[2] = (1.0)*CFACTOR;
   VAR[3] = (1.0)*CFACTOR;
   VAR[4] = (150.0)*CFACTOR;
   VAR[5] = (2.0)*CFACTOR;
   VAR[6] = (1.0)*CFACTOR;
   VAR[7] = (5.0)*CFACTOR;
-  VAR[8] = (2.0)*CFACTOR;
-  VAR[9] = (0.1)*CFACTOR;
+  VAR[8] = (0.1)*CFACTOR;
+  VAR[9] = (2.0)*CFACTOR;
   VAR[10] = (0.1)*CFACTOR;
   VAR[11] = (1.0)*CFACTOR;
-  VAR[12] = (50.0)*CFACTOR;
+  VAR[12] = (0.030)*CFACTOR;
   VAR[13] = (1.0)*CFACTOR;
   VAR[14] = (0.1)*CFACTOR;
   VAR[15] = (0.1)*CFACTOR;
   VAR[16] = (0.1)*CFACTOR;
-  VAR[17] = (0.030)*CFACTOR;
-  FIX[0] = (0.0005)*CFACTOR;
-  FIX[1] = (1e7)*CFACTOR;
-  FIX[2] = (1e9)*CFACTOR;
-  FIX[3] = 1.0;
+  VAR[17] = (50.0)*CFACTOR;
+  VAR[18] = (0.0005)*CFACTOR;
+  FIX[0] = (1e7)*CFACTOR;
+  FIX[1] = (1e9)*CFACTOR;
 /* constant rate coefficients                                       */
 /* END constant rate coefficients                                   */
 

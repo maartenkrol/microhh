@@ -12,11 +12,11 @@
 /*        M. Damian, Villanova University, USA                      */
 /*        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany */
 /*                                                                  */
-/* File                 : orlando_ohss_Integrator.c                 */
-/* Time                 : Sun Aug  9 15:18:54 2020                  */
+/* File                 : orlando_Integrator.c                      */
+/* Time                 : Wed Aug 19 11:17:37 2020                  */
 /* Working directory    : /home/WUR/krol005/kpp/examples            */
-/* Equation file        : orlando_ohss.kpp                          */
-/* Output root filename : orlando_ohss                              */
+/* Equation file        : orlando.kpp                               */
+/* Output root filename : orlando                                   */
 /*                                                                  */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "orlando_ohss_Parameters.h"
-#include "orlando_ohss_Global.h"
-#include "orlando_ohss_Sparse.h"
+#include "orlando_Parameters.h"
+#include "orlando_Global.h"
+#include "orlando_Sparse.h"
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -91,7 +91,7 @@
      double Y[], double Fcn0[], 
      void ode_Fun(double, double [], double []), 
      double dFdT[] );
- void Fun( double Y[], double FIX[], double RCONST[], double Ydot[], double A[] );
+ void Fun( double Y[], double FIX[], double RCONST[], double Ydot[] );
  void Jac_SP( double Y[], double FIX[], double RCONST[], double Ydot[] );
  void FunTemplate( double T, double Y[], double Ydot[] );
  void JacTemplate( double T, double Y[], double Ydot[] );
@@ -155,8 +155,8 @@ void INTEGRATE( double TIN, double TOUT )
    Na=Na+IPAR[13];
    Nr=Nr+IPAR[14];
    Ng=Ng+IPAR[17];
-   //printf("\n Step=%d  Acc=%d  Rej=%d  Singular=%d\n",
-   //      Ns,Na,Nr,Ng);
+   // printf("\n Step=%d  Acc=%d  Rej=%d  Singular=%d\n",
+   //       Ns,Na,Nr,Ng);
 
 
    if (IERR < 0)
@@ -319,7 +319,7 @@ int Rosenbrock(double Y[], double Tstart, double Tend,
   /*~~~>  For Scalar tolerances (IPAR[1] != 0)  the code uses AbsTol[0] and RelTol[0]
 !   For Vector tolerances (IPAR[1] == 0) the code uses AbsTol(1:NVAR) and RelTol(1:NVAR) */
    if (IPAR[1] == 0) {
-      VectorTol = 1; UplimTol  = 18;
+      VectorTol = 1; UplimTol  = 19;
    } else { 
       VectorTol = 0; UplimTol  = 1;
    } /* end if */
@@ -510,13 +510,13 @@ int RosenbrockIntegrator(
                                       or failure (if negative)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 {   
-   double Ynew[18], Fcn0[18], Fcn[18],
-      dFdT[18],
-      Jac0[129], Ghimj[129];
-   double K[18*ros_S];   
+   double Ynew[19], Fcn0[19], Fcn[19],
+      dFdT[19],
+      Jac0[163], Ghimj[163];
+   double K[19*ros_S];   
    double H, T, Hnew, HC, HG, Fac, Tau; 
-   double Err, Yerr[18];
-   int Pivot[18], Direction, ioffset, j, istage;
+   double Err, Yerr[19];
+   int Pivot[19], Direction, ioffset, j, istage;
    char RejectLastH, RejectMoreH;
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -577,32 +577,32 @@ int RosenbrockIntegrator(
   /*~~~>   Compute the stages  */
    for (istage = 1; istage <= ros_S; istage++) {
       
-      /* Current istage offset. Current istage vector is K[ioffset:ioffset+18-1] */
-      ioffset = 18*(istage-1);
+      /* Current istage offset. Current istage vector is K[ioffset:ioffset+19-1] */
+      ioffset = 19*(istage-1);
 	 
       /* For the 1st istage the function has been computed previously */
       if ( istage == 1 )
-	   WCOPY(18,Fcn0,1,Fcn,1);
+	   WCOPY(19,Fcn0,1,Fcn,1);
       else { /* istage>1 and a new function evaluation is needed at current istage */
 	if ( ros_NewF[istage-1] ) {
-	   WCOPY(18,Y,1,Ynew,1);
+	   WCOPY(19,Y,1,Ynew,1);
 	   for (j = 1; j <= istage-1; j++)
-	     WAXPY(18,ros_A[(istage-1)*(istage-2)/2+j-1],
-                   &K[18*(j-1)],1,Ynew,1); 
+	     WAXPY(19,ros_A[(istage-1)*(istage-2)/2+j-1],
+                   &K[19*(j-1)],1,Ynew,1); 
 	   Tau = T + ros_Alpha[istage-1]*Direction*H;
            (*ode_Fun)(Tau,Ynew,Fcn);
 	} /*end if ros_NewF(istage)*/
       } /* end if istage */
 	 
-      WCOPY(18,Fcn,1,&K[ioffset],1);
+      WCOPY(19,Fcn,1,&K[ioffset],1);
       for (j = 1; j <= istage-1; j++) {
 	 HC = ros_C[(istage-1)*(istage-2)/2+j-1]/(Direction*H);
-	 WAXPY(18,HC,&K[18*(j-1)],1,&K[ioffset],1);
+	 WAXPY(19,HC,&K[19*(j-1)],1,&K[ioffset],1);
       } /* for j */
 	 
       if ((!Autonomous) && (ros_Gamma[istage-1])) { 
         HG = Direction*H*ros_Gamma[istage-1];
-	WAXPY(18,HG,dFdT,1,&K[ioffset],1);
+	WAXPY(19,HG,dFdT,1,&K[ioffset],1);
       } /* end if !Autonomous */
       
       SolveTemplate(Ghimj, Pivot, &K[ioffset]);
@@ -611,14 +611,14 @@ int RosenbrockIntegrator(
 	    
 
   /*~~~>  Compute the new solution   */
-   WCOPY(18,Y,1,Ynew,1);
+   WCOPY(19,Y,1,Ynew,1);
    for (j=1; j<=ros_S; j++)
-       WAXPY(18,ros_M[j-1],&K[18*(j-1)],1,Ynew,1);
+       WAXPY(19,ros_M[j-1],&K[19*(j-1)],1,Ynew,1);
 
   /*~~~>  Compute the error estimation   */
-   WSCAL(18,ZERO,Yerr,1);
+   WSCAL(19,ZERO,Yerr,1);
    for (j=1; j<=ros_S; j++)    
-       WAXPY(18,ros_E[j-1],&K[18*(j-1)],1,Yerr,1);
+       WAXPY(19,ros_E[j-1],&K[19*(j-1)],1,Yerr,1);
    Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol );
 
   /*~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax  */
@@ -629,7 +629,7 @@ int RosenbrockIntegrator(
    Nstp++;
    if ( (Err <= ONE) || (H <= Hmin) ) {    /*~~~> Accept step  */
       Nacc++;
-      WCOPY(18,Ynew,1,Y,1);
+      WCOPY(19,Ynew,1,Y,1);
       T += Direction*H;
       Hnew = MAX(Hmin,MIN(Hnew,Hmax));
       /* No step size increase after a rejected step  */
@@ -674,7 +674,7 @@ double ros_ErrorNorm (
    int i;
    
    Err = ZERO;
-   for (i=0; i<18; i++) {
+   for (i=0; i<19; i++) {
 	Ymax = MAX(ABS(Y[i]),ABS(Ynew[i]));
      if (VectorTol) {
        Scale = AbsTol[i]+RelTol[i]*Ymax;
@@ -683,7 +683,7 @@ double ros_ErrorNorm (
      } /* end if */
      Err = Err+(Yerr[i]*Yerr[i])/(Scale*Scale);
    } /* for i */
-   Err  = SQRT(Err/(double)18);
+   Err  = SQRT(Err/(double)19);
 
    return Err;
    
@@ -707,8 +707,8 @@ void ros_FunTimeDerivative (
    
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T));
    (*ode_Fun)(T+Delta,Y,dFdT);
-   WAXPY(18,(-ONE),Fcn0,1,dFdT,1);
-   WSCAL(18,(ONE/Delta),dFdT,1);
+   WAXPY(19,(-ONE),Fcn0,1,dFdT,1);
+   WSCAL(19,(ONE/Delta),dFdT,1);
 
 }  /*  ros_FunTimeDerivative */
 
@@ -741,10 +741,10 @@ char ros_PrepareMatrix (
    while (1) {  /* while Singular */
    
   /*~~~>    Construct Ghimj = 1/(H*ham) - Jac0 */
-     WCOPY(129,Jac0,1,Ghimj,1);
-     WSCAL(129,(-ONE),Ghimj,1);
+     WCOPY(163,Jac0,1,Ghimj,1);
+     WSCAL(163,(-ONE),Ghimj,1);
      ghinv = ONE/(Direction*(*H)*gam);
-     for (i=0; i<18; i++) {
+     for (i=0; i<19; i++) {
        Ghimj[LU_DIAG[i]] = Ghimj[LU_DIAG[i]]+ghinv;
      } /* for i */
   /*~~~>    Compute LU decomposition  */
@@ -1189,7 +1189,7 @@ void DecompTemplate( double A[], int Pivot[], int* ising )
 {   
    *ising = KppDecomp ( A );
   /*~~~> Note: for a full matrix use Lapack:
-      DGETRF( 18, 18, A, 18, Pivot, ising ) */
+      DGETRF( 19, 19, A, 19, Pivot, ising ) */
     
    Ndec++;
 
@@ -1204,7 +1204,7 @@ void DecompTemplate( double A[], int Pivot[], int* ising )
    KppSolve( A, b );
   /*~~~> Note: for a full matrix use Lapack:
       NRHS = 1
-      DGETRS( 'N', 18 , NRHS, A, 18, Pivot, b, 18, INFO ) */
+      DGETRS( 'N', 19 , NRHS, A, 19, Pivot, b, 19, INFO ) */
      
    Nsol++;
 
@@ -1219,13 +1219,12 @@ void FunTemplate( double T, double Y[], double Ydot[] )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/   
 {
    double Told;     
-   double A[NREACT];
 
    Told = TIME;
    TIME = T;
    //Update_SUN();
    //Update_RCONST();
-   Fun( Y, FIX, RCONST, Ydot, A );
+   Fun( Y, FIX, RCONST, Ydot );
    TIME = Told;
      
    Nfun++;

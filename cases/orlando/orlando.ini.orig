@@ -1,16 +1,15 @@
 [master]
-npx=2
-npy=2
-
+npx=1
+npy=4
 
 [grid]
-itot=24
-jtot=24
-ktot=24
+itot=64
+jtot=64
+ktot=64
 
-xsize=7200.
-ysize=7200.
-zsize=3000.
+xsize=3200.
+ysize=3200.
+zsize=3200.
 
 utrans=0.0
 vtrans=0.0
@@ -77,12 +76,12 @@ sbcbot[co]=flux
 sbctop[co]=neumann
 sbcbot[hcho]=flux
 sbctop[hcho]=neumann
-sbcbot[isopoOh]=flux
+sbcbot[isopooh]=flux
 sbctop[isopooh]=neumann
 sbcbot[isop]=flux
 sbctop[isop]=neumann
 sbcbot[xo2]=flux
-sbctop[xo2]=flux
+sbctop[xo2]=neumann
 sbcbot[mvkmacr]=flux
 sbctop[mvkmacr]=neumann
 sbcbot[isopao2]=flux
@@ -92,13 +91,13 @@ sbctop[no2]=neumann
 sbcbot[no3]=flux
 sbctop[no3]=neumann
 sbcbot[ch3o2]=flux
-sbctop[ch3o2]=flux
+sbctop[ch3o2]=neumann
 sbcbot[isopbo2]=flux
 sbctop[isopbo2]=neumann
 sbcbot[no]=flux
 sbctop[no]=neumann
 sbcbot[ho2]=flux
-sbctop[ho2]=flux
+sbctop[ho2]=neumann
 sbcbot[o3]=flux
 sbctop[o3]=neumann
 sbot[th]=0.1
@@ -156,42 +155,24 @@ timescale=1000.0
 
 [chemistry]
 swchemistry = enabled
-switch_dt = 4e2
+switch_dt = 1e2
 
 [buffer]
 swbuffer=1
-swupdate=1
-zstart=2100.
-sigma=0.001592
+zstart=3000.
+sigma=0.00223
 beta=2.
 
 [time]
-endtime=10800
+endtime=46800
 dt=6.
 dtmax=60.
 savetime=3600
-outputiter=0
+outputiter=50
 adaptivestep=true
-starttime=0
+starttime=10800
 rkorder=3
 
 [stats]
 swstats=1
 sampletime=300
-whitelist=oh_1_ho2_1, oh_1_o3_1, ho2_1_ho2_1, ho2_1_o3_1, no_1_o3_1, no2_1_oh_1, no2_1_o3_1, no_1_ho2_1, no2_1_no3_1, no_1_no3_1, ho2_1_no3_1, ch3o2_1_no_1, ch3o2_1_ho2_1, co_1_oh_1, ch4_1_oh_1, hcho_1_oh_1, isop_1_oh_1, isopao2_1_ch3o2_1, isopao2_1_ho2_1, isopao2_1_no_1, isopbo2_1_ch3o2_1, isopbo2_1_ho2_1, isopbo2_1_no_1, isopooh_1_oh_1, hald_1_oh_1, xo2_1_ho2_1, xo2_1_no_1, mvkmacr_1_oh_1, isop_1_o3_1, isop_1_no3_1 
-
-#blacklist=.*_w,.*_flux
-
-[dump]
-swdump=1
-sampletime=3600
-dumplist=oh
-
-[column]
-swcolumn=1
-sampletime=10
-coordinates[x]=3500
-coordinates[y]=3500
-
-[budget]
-swbudget=2
