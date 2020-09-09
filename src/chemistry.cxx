@@ -98,14 +98,14 @@ double CFACTOR;                          /* Conversion factor for concentration 
         return std::make_pair(time_dim, time_dim_length);
     }
 	template<typename TF>
-	TF  ARRM( TF A0, TF B0, TF C0, TF TEMP )
+	TF  ARRM( const TF A0, const TF B0, const TF C0, const TF TEMP )
 	{
 	return A0 * exp( -B0/TEMP ) 
 		* pow( (TEMP/300.0), C0 );   
 	}           
 
 	template<typename TF>
-	TF usr_O3_hv_H2O( TF TEMP, TF C_M, TF C_H2O, TF J_O1D)
+	TF usr_O3_hv_H2O( const TF TEMP, const TF C_M, const TF C_H2O, const TF J_O1D)
 	{
 	TF KH2O;
 	TF KN2;
@@ -117,7 +117,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}           
 
 	template<typename TF>
-	TF usr_HO2_HO2( TF TEMP, TF C_M, TF C_H2O )
+	TF usr_HO2_HO2(const  TF TEMP, const TF C_M, const TF C_H2O )
 	/* for cesm-consistent reaction labels, equivalent to usr9 */
 	/* HO2+HO2 -> H2O2+O2 */
 	/* H2O included in fc calculation, not as reactant */
@@ -142,8 +142,8 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}           
 
 	template<typename TF>
-	TF JPL_TROE( TF k0_300K, TF n, TF kinf_300K, TF m, 
-		 TF base, TF temp, TF cair )
+	TF JPL_TROE( const TF k0_300K, const TF n, const TF kinf_300K, const TF m, 
+		 const TF base, const TF temp, const TF cair )
 
 	{
 	/* !------------------------------------------------------------ */
@@ -165,7 +165,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}           
 
 	template<typename TF>
-	TF usr_CO_OH_a( TF temp, TF c_m )
+	TF usr_CO_OH_a( const TF temp, const TF c_m )
 	/* ! for cesm-consistent reaction labels, equivalent to usr8 */
 	/* ! CO+OH -> CO2+HO2 */
 	{
@@ -174,7 +174,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	}
 
 	template<typename TF>
-	TF usr_N2O5_H2O( TF k, TF c_h2o )
+	TF usr_N2O5_H2O( const TF k, const TF c_h2o )
 	{
 	return k * c_h2o;
 	}
@@ -250,7 +250,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 	const TF xmh2o = 18.015265;
         const TF xmair = 28.9647;       // Molar mass of dry air  [kg kmol-1]
         const TF Na    = 6.02214086e23; // Avogadros number [molecules mol-1]
-	TF C_M = 2.55e19;
+	TF C_M = 2.55e19;  // because of scop KPP generated routines
 	// TF tscale[NVAR] ;
 	TF VAR0[NVAR] ;
 	TF vdo3   = (0.0);
@@ -276,6 +276,8 @@ double CFACTOR;                          /* Conversion factor for concentration 
         int nkpp = 0;
 	int nderiv = 0;
 	TF eisop;
+	// update the time integration of the reaction fluxes:
+	trfa += rkdt;
         for (int k=kstart; k<kend; ++k)
             {	
 	    C_M = (TF)1e-3*rhoref[k]*Na/xmair;   // molecules/cm3 for chemistry!
@@ -310,7 +312,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
                 for (int i=istart; i<iend; ++i)
                 {
                     const int ijk = i + j*jj + k*kk;
-		    const TF C_H2O = qt[ijk]*xmair*C_M/xmh2o;                   // kg/kg --> molH2O/molAir --*C_M--> molecules/cm3
+		    const TF C_H2O = std::max(qt[ijk]*xmair*C_M/xmh2o,(TF)1.0);                   // kg/kg --> molH2O/molAir --*C_M--> molecules/cm3 limit to 1 molecule/cm3 to avoid error usr_HO2_HO2
 		    const TF SUN = 1.0; 
 		    const TF TEMP = Temp[ijk];
 		    //const TF TEMP = 298.0;
@@ -399,7 +401,8 @@ double CFACTOR;                          /* Conversion factor for concentration 
 
 		    // get statitics for reacion fluxes:
 		    for (int l=0;l<NREACT;++l) rfa[(k-kstart)*NREACT+l] +=  RF[l]*rkdt;
-		    trfa += rkdt;
+		    // now to check reaction constants:
+		    // for (int l=0;l<NREACT;++l) rfa[(k-kstart)*NREACT+l] +=  RCONST[l]*rkdt;
 
 		    //for (int l=0; l<NVAR; ++l) printf (" %i %13.3e %13.3e %13.3e \n", l,VAR[l],Vdot[l],VAR[l]/ABS(Vdot[l]));
 		    TF mint = (TF)1e20;
@@ -500,44 +503,48 @@ void Chemistry<TF>::exec_stats(const int iteration, const double time, Stats<TF>
 {
     const TF no_offset = 0.;
     const TF no_threshold = 0.;
+    auto& gd = grid.get_grid_data();
 
     for (auto& it : fields.st) if( cmap[it.first].type == Chemistry_type::disabled) return;
+
     stats.calc_stats("oh", *fields.sd.at("oh"), no_offset, no_threshold);
 
-    auto& gd = grid.get_grid_data();
-    auto& md = master.get_MPI_data();
+    if (iteration != 0)   // this does not make sense for first step
+    {
 
-    // sum of all PEs: 
-    master.sum(rfa.data(),NREACT*gd.ktot);
-    for (int l=0;l<NREACT*gd.ktot;++l) rfa[l] /= (trfa*md.npx*md.npy);    // mean over the horizontal plane in molecules/(cm3 * s)
-
-
-    // Put the data into the NetCDF file.
-    const std::vector<int> time_index{statistics_counter};
-
-    // Write the time and iteration number.
-    m.time_var->insert(time     , time_index);
-    m.iter_var->insert(iteration, time_index);
-
-    const std::vector<int> time_rfaz_index = {statistics_counter, 0};
-
-    m.profs.at("chem_budget").data = rfa;
-
-    const int ksize = NREACT*gd.ktot;
-    std::vector<int> time_rfaz_size  = {1, ksize};
-    std::vector<TF> prof_nogc(
-            m.profs.at("chem_budget").data.begin() ,
-            m.profs.at("chem_budget").data.begin() + ksize);
-
-    m.profs.at("chem_budget").ncvar.insert(prof_nogc, time_rfaz_index, time_rfaz_size);
+	    // sum of all PEs: 
+	    // printf("trfa: %13.4e iteration: %i time: %13.4e \n", trfa,iteration,time);
+	    master.sum(rfa.data(),NREACT*gd.ktot);
+	    for (int l=0;l<NREACT*gd.ktot;++l) rfa[l] /= (trfa*gd.itot*gd.jtot);    // mean over the horizontal plane in molecules/(cm3 * s)
 
 
-    // Synchronize the NetCDF file.
-    m.data_file->sync();
-    // Increment the statistics index.
-    ++statistics_counter;
+	    // Put the data into the NetCDF file.
+	    const std::vector<int> time_index{statistics_counter};
 
-    // reintialize statistics
+	    // Write the time and iteration number.
+	    m.time_var->insert(time     , time_index);
+	    m.iter_var->insert(iteration, time_index);
+
+	    const std::vector<int> time_rfaz_index = {statistics_counter, 0};
+
+	    m.profs.at("chem_budget").data = rfa;
+
+	    const int ksize = NREACT*gd.ktot;
+	    std::vector<int> time_rfaz_size  = {1, ksize};
+	    std::vector<TF> prof_nogc(
+		    m.profs.at("chem_budget").data.begin() ,
+		    m.profs.at("chem_budget").data.begin() + ksize);
+
+	    m.profs.at("chem_budget").ncvar.insert(prof_nogc, time_rfaz_index, time_rfaz_size);
+
+
+	    // Synchronize the NetCDF file.
+	    m.data_file->sync();
+	    // Increment the statistics index.
+	    ++statistics_counter;
+
+    }
+    // (re-)intialize statistics 
     for (int l=0;l<NREACT*gd.ktot;++l) rfa[l] = 0.0;
     trfa = (TF) 0.0;
 }
@@ -733,7 +740,7 @@ void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
     auto& gd = grid.get_grid_data();
     
     auto Temp = fields.get_tmp();
-    thermo.get_thermo_field(*Temp, "T", false, false);
+    thermo.get_thermo_field(*Temp, "T", true, false);
 
     // determine sub time step:
     TF rkdt = 0.0;
@@ -768,7 +775,7 @@ void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
 	    fields.sd.at("oh")->fld.data(), 
 	    jval,emval,
 	    rfa.data(), trfa,
-	    fields.sp.at("qt")     ->fld.data(),
+	    fields.st.at("qt") ->fld.data(),
 	    Temp ->fld.data(), rkdt, switch_dt,
 	    gd.istart, gd.iend, gd.jstart, gd.jend, gd.kstart, gd.kend,
 	    gd.icells, gd.ijcells, gd.dz.data(), fields.rhoref.data());

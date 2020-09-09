@@ -60,7 +60,7 @@ for k in range(kmax):
         qt[k] = 11.8 - 4.0*(z[k]-352.5)/(442.5-352.5)
     else:
         thl[k] = 298.1 + (z[k] - 443.5)*0.003
-        qt[k] = max(1.0,7.8 - (z[k]- 443.5 )*0.004)
+        qt[k] = max(0.0,7.8 - (z[k]- 443.5 )*0.004)
 
 
     # Subsidence
@@ -107,7 +107,7 @@ Lv  = 2.5e6
 p0  = 1e5
 rho = p0/(Rd*thl[0]*(1. + 0.61*qt[0]))
 time_surface *= 3600. # h to s
-sbotthl = H/(rho*cp)
+sbotthl = H    #  /(rho*cp)
 sbotqt  *= 1e-3    # kg/kg 
 
 

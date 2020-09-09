@@ -3,10 +3,10 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 
 start = 0
-end = 157
+end = 100
 step = 10
 
-stats = nc.Dataset("orlando.default.0000000.nc", "r")
+stats = nc.Dataset("orlando.default.0010800.nc", "r")
 t = stats.variables["time"][start:end]
 z = stats.variables["z"][:]
 zh = stats.variables["zh"][:]
@@ -111,4 +111,60 @@ plt.plot(t, ht)
 plt.xlabel(r'$time [s]$')
 plt.ylabel(r'$h [m]$')
 
+thermo = stats.groups['thermo']
+thl = thermo.variables['thl'][:]
+qr = thermo.variables['qr'][:]
+qt = thermo.variables['qt'][:]
+ql = thermo.variables['ql'][:]
+ql_frac = thermo.variables['ql_frac'][:]
+qflux = thermo.variables['qt_flux'][:]
+sfluxt = thermo.variables["thl_flux"][:]
+bx = thermo.variables['b'][:]
+
+
+thl_2 = thermo.variables['thl_2'][:]
+f,ax = plt.subplots(1)
+for th in thl:
+    ax.plot(th[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('theta (K)')
+f,ax = plt.subplots(1)
+for q in qr:
+    ax.plot(q[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('qr (kg/kg)')
+f,ax = plt.subplots(1)
+for q in qt:
+    ax.plot(1e3*q[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('qt (g/kg)')
+f,ax = plt.subplots(1)
+for q in ql:
+    ax.plot(1e3*q[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('ql (g/kg)')
+f,ax = plt.subplots(1)
+for q in ql_frac:
+    ax.plot(q[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('ql_frac (-)')
+
+f,ax = plt.subplots(1)
+for q in bx:
+    ax.plot(q[:], z)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('Buoyancy (m/s2)')
+
+f,ax = plt.subplots(1)
+for q in sfluxt:
+    ax.plot(q[:], zh)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('Heat Flux (Km/s)')
+
+f,ax = plt.subplots(1)
+for q in qflux:
+    ax.plot(1e3*q[:], zh)
+ax.set_ylabel('z (m)')
+ax.set_xlabel('Moisture Flux ((g/kg).(m/s)')
 plt.show()
+
