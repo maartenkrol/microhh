@@ -155,8 +155,8 @@ void INTEGRATE( double TIN, double TOUT )
    Na=Na+IPAR[13];
    Nr=Nr+IPAR[14];
    Ng=Ng+IPAR[17];
-   //printf("\n Step=%d  Acc=%d  Rej=%d  Singular=%d\n",
-   //      Ns,Na,Nr,Ng);
+   /*printf("\n Step=%d  Acc=%d  Rej=%d  Singular=%d\n",  */
+   /*      Ns,Na,Nr,Ng); */
 
 
    if (IERR < 0)

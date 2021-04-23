@@ -9,7 +9,7 @@ specs = slist.split(',')
 profs = []
 error = []
 flux = []
-with Dataset("orlando.default.0010800.nc") as x:
+with Dataset("orlando.default.0000000.nc") as x:
     zax = x.variables['z'][:]
     zaxh = x.variables['zh'][:]
     z = x.groups['default']
@@ -43,7 +43,7 @@ flux = np.array(flux)
 
 for i,spec in enumerate(specs):
     f,ax = subplots()
-    for j in range(0,36,1):
+    for j in range(0,35,5):
         ax.plot(profs[i,j,:], zax)
     ax.errorbar(profs[i,-1,:],zax, xerr=sqrt(error[i,-1,:]), fmt='.')
     ax.set_xlabel(spec + '(ppb)')
