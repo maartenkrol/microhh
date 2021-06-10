@@ -435,7 +435,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 			    tisopbo2[ijk] += (VAR[ind_ISOPBO2]-VAR0[ind_ISOPBO2])/(rkdt*CFACTOR);
 			    tno3[ijk] +=     (VAR[ind_NO3]-VAR0[ind_NO3])/(rkdt*CFACTOR);
 			    ///  !!tho2[ijk] +=     (VAR[ind_HO2]-VAR0[ind_HO2])/(rkdt*CFACTOR);
-			    tho2[ijk] =     (VAR[ind_HO2]-VAR0[ind_HO2])/(rkdt*CFACTOR);
+			    tho2[ijk] +=     (VAR[ind_HO2]-VAR0[ind_HO2])/(rkdt*CFACTOR);
 		    }
 		    else
 		    {
@@ -457,7 +457,7 @@ double CFACTOR;                          /* Conversion factor for concentration 
 			    tch3o2[ijk] +=   Vdot[ind_CH3O2]/CFACTOR;
 			    tisopbo2[ijk] += Vdot[ind_ISOPBO2]/CFACTOR;
 			    tno3[ijk] +=     Vdot[ind_NO3]/CFACTOR;
-			    tho2[ijk] =     Vdot[ind_HO2]/CFACTOR;
+			    tho2[ijk] +=     Vdot[ind_HO2]/CFACTOR;
 		    }
 		    // tscale[0] = std::min(tscale[0],ABS(h2o2[ijk])/ABS(th2o2[ijk]));
 		    // tscale[1] = std::min(tscale[1],ABS(ch4[ijk])/ABS(tch4[ijk]));
