@@ -50,12 +50,6 @@ struct Deposition_tile
     std::string long_name;    // Descriptive name of tile
     // Land surface
     std::vector<TF> vdo3;     // deposition velocity of ozone (m s-1)
-    std::vector<TF> vdno;     // deposition velocity of no (m s-1)
-    std::vector<TF> vdno2;    // deposition velocity of no2 (m s-1)
-    std::vector<TF> vdhno3;   // deposition velocity of hno3 (m s-1)
-    std::vector<TF> vdh2o2;   // deposition velocity of h2o2 (m s-1)
-    std::vector<TF> vdrooh;   // deposition velocity of rooh (m s-1)
-    std::vector<TF> vdhcho;   // deposition velocity of hcho (m s-1)
 };
 
 template<typename TF>
@@ -71,7 +65,7 @@ class Deposition
         void init(Input&);                 ///< Initialize the arrays that contain the profiles.
         void create(Stats<TF>&, Cross<TF>&);
         void update_time_dependent(Timeloop<TF>&, Boundary<TF>&,
-             TF*, TF*, TF*, TF*, TF*, TF*, TF*); ///< Update the time dependent deposition parameters.
+             TF*); ///< Update the time dependent deposition parameters.
 
         const TF get_vd(const std::string&) const;                  ///< get the standard vd value (o3, no, no2, ..)
         void get_tiled_mean(TF*, std::string, TF, const TF*, const TF*, const TF*);
@@ -107,7 +101,7 @@ class Deposition
         std::vector<TF> henry;
         std::vector<TF> f0;
 
-        TF vd_o3,vd_no,vd_no2,vd_hno3,vd_h2o2,vd_rooh,vd_hcho;
+        TF vd_o3;
 
         std::vector<std::string> deposition_tile_names {"veg", "soil" ,"wet"};
         Deposition_tile_map<TF> deposition_tiles;
