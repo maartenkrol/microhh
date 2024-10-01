@@ -141,7 +141,7 @@ namespace
     template<typename TF>
     void calc_deposition_per_tile(
         const std::basic_string<char> lu_type,
-        TF* restrict vdo3,
+        TF* restrict vdnh3,
         const TF* const restrict lai,
         const TF* const restrict c_veg,
         const TF* const restrict rs,
@@ -169,7 +169,7 @@ namespace
 
             // Note: I think memory-wise it's more efficient to first loop over ij and then over species,
             // because otherwise rb and rc vectors must be allocated for the entire grid instead of for
-            // the number of tracers. Also, it avoids the use of if statements (e.g. "if (t==0) vdo3[ij] = ...")
+            // the number of tracers. Also, it avoids the use of if statements (e.g. "if (t==0) vdnh3[ij] = ...")
             std::vector<TF> rmes_local = {rmes[0]};
             std::vector<TF> rb(ntrac_vd, (TF)0.0);
             std::vector<TF> rc(ntrac_vd, (TF)0.0);
@@ -192,7 +192,7 @@ namespace
                         rc[t] = TF(1.0) / ((TF)1.0 / (diff_scl[t] + rs[ij] + rmes_local[t]) + (TF)1.0 / rcut[t] + (TF)1.0 / (ra_inc + rsoil[t]));
                     }
 
-                    vdo3[ij]   = (TF)1.0 / (ra[ij] + rb[0] + rc[0]);
+                    vdnh3[ij]   = (TF)1.0 / (ra[ij] + rb[0] + rc[0]);
                 }
 
         }
@@ -213,7 +213,7 @@ namespace
                         rb[t] = (TF)1.0 / (ckarman * ustar[ij]) * diff_scl[t];
                     }
 
-                    vdo3[ij]   = (TF)1.0 / (ra[ij] + rb[0] + rsoil[0]);
+                    vdnh3[ij]   = (TF)1.0 / (ra[ij] + rb[0] + rsoil[0]);
                 }
         }
         else if (lu_type == "wet")
@@ -242,7 +242,7 @@ namespace
                     }
 
                     // Calculate vd for wet skin tile as the weighted average of vd to wet soil and to wet vegetation
-                    vdo3[ij]   = c_veg[ij] / (ra[ij] + rb_veg[0] + rc[0]) + ((TF)1.0 - c_veg[ij]) / (ra[ij] + rb_soil[0] + rsoil[0]);
+                    vdnh3[ij]   = c_veg[ij] / (ra[ij] + rb_veg[0] + rc[0]) + ((TF)1.0 - c_veg[ij]) / (ra[ij] + rb_soil[0] + rsoil[0]);
                 }
         }
     }
@@ -267,7 +267,7 @@ void Deposition<TF>::init(Input& inputin)
 {
     // Always read the default deposition velocities. They are needed by 
     // chemistry, even if deposition is disabled.
-    vd_o3   = inputin.get_item<TF>("deposition", "vdo3", "", (TF)0.005);
+    vd_nh3   = inputin.get_item<TF>("deposition", "vdnh3", "", (TF)0.005);
 
     if (!sw_deposition)
         return;
@@ -280,7 +280,7 @@ void Deposition<TF>::init(Input& inputin)
 
     for (auto& tile : deposition_tiles)
     {
-        tile.second.vdo3.resize(gd.ijcells);
+        tile.second.vdnh3.resize(gd.ijcells);
     }
 
     deposition_tiles.at("veg" ).long_name = "vegetation";
@@ -309,7 +309,7 @@ void Deposition<TF>::init(Input& inputin)
 
     for (auto& tile : deposition_tiles)
     {
-        std::fill(tile.second.vdo3.begin(),tile.second.vdo3.end(), vd_o3);
+        std::fill(tile.second.vdnh3.begin(),tile.second.vdnh3.end(), vd_nh3);
     }
 }
 
@@ -324,9 +324,9 @@ void Deposition<TF>::create(Stats<TF>& stats, Cross<TF>& cross)
     if (cross.get_switch())
     {
         std::vector<std::string> allowed_crossvars = {
-                "vdo3_soil", 
-                "vdo3_wet", 
-                "vdo3_veg"};
+                "vdnh3_soil", 
+                "vdnh3_wet", 
+                "vdnh3_veg"};
         cross_list = cross.get_enabled_variables(allowed_crossvars);
     }
 }
@@ -336,7 +336,7 @@ template <typename TF>
 void Deposition<TF>::update_time_dependent(
         Timeloop<TF>& timeloop,
         Boundary<TF>& boundary,
-        TF* restrict vdo3)
+        TF* restrict vdnh3)
 {
     if (!sw_deposition)
         return;
@@ -354,7 +354,7 @@ void Deposition<TF>::update_time_dependent(
     {
         calc_deposition_per_tile(
                 tile.first,
-                deposition_tiles.at(tile.first).vdo3.data(),
+                deposition_tiles.at(tile.first).vdnh3.data(),
                 lai.data(),
                 c_veg.data(),
                 tile.second.rs.data(),
@@ -370,12 +370,12 @@ void Deposition<TF>::update_time_dependent(
     }
 
     // Calculate tile-mean deposition for chemistry
-    get_tiled_mean(vdo3,"o3",(TF) 1.0,tiles.at("veg").fraction.data(), tiles.at("soil").fraction.data(), tiles.at("wet").fraction.data());
+    get_tiled_mean(vdnh3,"nh3",(TF) 1.0,tiles.at("veg").fraction.data(), tiles.at("soil").fraction.data(), tiles.at("wet").fraction.data());
 
     // cmk: we use the wet-tile info for u* and ra, since these are calculated in lsm with f_wet = 100%
-    update_vd_water(vdo3,"o3",tiles.at("wet").ra.data(),tiles.at("wet").ustar.data(),water_mask.data(),diff_scl.data(),rwat.data());
+    update_vd_water(vdnh3,"nh3",tiles.at("wet").ra.data(),tiles.at("wet").ustar.data(),water_mask.data(),diff_scl.data(),rwat.data());
 
-    spatial_avg_vd(vdo3);
+    spatial_avg_vd(vdnh3);
 
 }
 
@@ -392,12 +392,12 @@ void Deposition<TF>::exec_cross(Cross<TF>& cross, unsigned long iotime)
 
     for (auto& name : cross_list)
     {
-        if (name == "vdo3_veg")
-            cross.cross_plane(deposition_tiles.at("veg").vdo3.data(), no_offset, name, iotime);
-        else if (name == "vdo3_soil")
-            cross.cross_plane(deposition_tiles.at("soil").vdo3.data(), no_offset, name, iotime);
-        else if (name == "vdo3_wet")
-            cross.cross_plane(deposition_tiles.at("wet").vdo3.data(), no_offset, name, iotime);
+        if (name == "vdnh3_veg")
+            cross.cross_plane(deposition_tiles.at("veg").vdnh3.data(), no_offset, name, iotime);
+        else if (name == "vdnh3_soil")
+            cross.cross_plane(deposition_tiles.at("soil").vdnh3.data(), no_offset, name, iotime);
+        else if (name == "vdnh3_wet")
+            cross.cross_plane(deposition_tiles.at("wet").vdnh3.data(), no_offset, name, iotime);
     }
 }
 
@@ -405,8 +405,8 @@ void Deposition<TF>::exec_cross(Cross<TF>& cross, unsigned long iotime)
 template<typename TF>
 const TF Deposition<TF>::get_vd(const std::string& name) const
 {
-    if (name == "o3")
-        return vd_o3;
+    if (name == "nh3")
+        return vd_nh3;
     else
     {
         std::string error = "Deposition::get_vd() can't return \"" + name + "\"";
@@ -429,11 +429,11 @@ void Deposition<TF>::get_tiled_mean(
     TF* fld_wet;
 
     // Yikes..
-    if (name == "o3")
+    if (name == "nh3")
     {
-        fld_veg  = deposition_tiles.at("veg").vdo3.data();
-        fld_soil = deposition_tiles.at("soil").vdo3.data();
-        fld_wet  = deposition_tiles.at("wet").vdo3.data();
+        fld_veg  = deposition_tiles.at("veg").vdnh3.data();
+        fld_soil = deposition_tiles.at("soil").vdnh3.data();
+        fld_wet  = deposition_tiles.at("wet").vdnh3.data();
     }
     else
         throw std::runtime_error("Cannot calculate tiled mean for variable \"" + name + "\"\\n");
@@ -469,9 +469,9 @@ void Deposition<TF>::update_vd_water(
     TF rwat_val;
 
     // Yikes...
-    if (name == "o3")
+    if (name == "nh3")
     {
-        // fld = vd_o3.data();
+        // fld = vd_nh3.data();
         diff_scl_val = diff_scl[0];
         rwat_val = rwat[0];
     }

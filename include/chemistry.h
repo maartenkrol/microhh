@@ -97,7 +97,7 @@ class Chemistry
         TF trfa;
 
         // vectors to contain calculated deposition velocities (m/s)
-        std::vector<TF> vdo3;
+        std::vector<TF> vdnh3;
 
         const std::string tend_name = "chemistry";
         const std::string tend_longname = "Chemistry";

@@ -81,7 +81,7 @@ namespace
             TF* restrict tnh3, const TF* const restrict nh3,
             const TF* const restrict jval,
             const TF* const restrict emval,
-            const TF* const restrict vdo3,
+            const TF* const restrict vdnh3,
             const TF* const restrict tprof,
             const TF* const restrict qprof,
             const TF* const restrict dzi,
@@ -129,7 +129,7 @@ namespace
                   
                     if (k==kstart)
                         {
-		  	   TF vd = vdo3[ij];
+		  	   TF vd = vdnh3[ij];
                         }
 		    else
 		        { 
@@ -188,7 +188,7 @@ void Chemistry<TF>::exec_stats(const int iteration, const double time, Stats<TF>
     if (iteration != 0)   // this does not make sense for first step = t=0.
     {
         // add deposition velocities to statistics:
-        stats.calc_stats_2d("vdo3"   , vdo3,   no_offset);
+        stats.calc_stats_2d("vdnh3"   , vdnh3,   no_offset);
 
         // sum of all PEs:
         // printf("trfa: %13.4e iteration: %i time: %13.4e \n", trfa,iteration,time);
@@ -240,15 +240,15 @@ void Chemistry<TF>::init(Input& inputin)
     statistics_counter = 0;
 
     // initialize 2D deposition arrays:
-    vdo3.resize(gd.ijcells);
+    vdnh3.resize(gd.ijcells);
 
     // initialize deposition routine:
     deposition-> init(inputin);
 
     // fill deposition with standard values:
-    std::fill(vdo3.begin(), vdo3.end(), deposition-> get_vd("o3"));
+    std::fill(vdnh3.begin(), vdnh3.end(), deposition-> get_vd("nh3"));
 
-    master.print_message("Deposition arrays initialized, e.g. with vdo3 = %13.5e m/s \n", deposition-> get_vd("o3"));
+    master.print_message("Deposition arrays initialized, e.g. with vdnh3 = %13.5e m/s \n", deposition-> get_vd("nh3"));
 }
 
 template <typename TF>
@@ -395,13 +395,13 @@ void Chemistry<TF>::create(
         const std::string group_named = "deposition";
 
         // used in chemistry:
-        stats.add_time_series("vdo3", "O3 deposition velocity", "m s-1", group_named);
+        stats.add_time_series("vdnh3", "NH3 deposition velocity", "m s-1", group_named);
     }
 
     // add cross-sections
     if (cross.get_switch())
     {
-        std::vector<std::string> allowed_crossvars = {"vdo3"};
+        std::vector<std::string> allowed_crossvars = {"vdnh3"};
         cross_list = cross.get_enabled_variables(allowed_crossvars);
 
         // `deposition->create()` only creates cross-sections.
@@ -421,8 +421,8 @@ void Chemistry<TF>::exec_cross(Cross<TF>& cross, unsigned long iotime)
 
     for (auto& name : cross_list)
     {
-        if (name == "vdo3")
-            cross.cross_plane(vdo3.data(), no_offset, name, iotime);
+        if (name == "vdnh3")
+            cross.cross_plane(vdnh3.data(), no_offset, name, iotime);
     }
 
     // see if to write per tile:
@@ -451,7 +451,7 @@ void Chemistry<TF>::update_time_dependent(Timeloop<TF>& timeloop, Boundary<TF>& 
     deposition->update_time_dependent(
             timeloop,
             boundary,
-            vdo3.data());
+            vdnh3.data());
 }
 
 
@@ -476,7 +476,7 @@ void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
     pss<TF>(
         fields.st.at("nh3")->fld.data(), fields.sp.at("nh3")->fld.data(),
         jval, emval,
-        vdo3.data(),
+        vdnh3.data(),
         tprof.data(),
         qprof.data(),
         gd.dzi.data(),
