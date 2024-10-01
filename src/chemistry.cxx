@@ -90,7 +90,7 @@ namespace
             TF& trfa,
             const TF dt,
             const TF sdt,
-            const TF switch_dt,
+            const TF lifetime,
             const int istart, const int iend,
             const int jstart, const int jend,
             const int kstart, const int kend,
@@ -114,7 +114,8 @@ namespace
             // From ppb (units mixing ratio) to molecules/cm3 --> changed: now mol/mol unit for transported tracers:
             const TF CFACTOR = C_M;
             const TF sdt_cfac_i = TF(1) / (sdt * CFACTOR);
-
+            const TF lti = TF(1)/lifetime;  // 1/s
+            TF decay;
             for (int j=jstart; j<jend; ++j)
                 #pragma ivdep
                 for (int i=istart; i<iend; ++i)
@@ -126,15 +127,16 @@ namespace
                     // const TF C_H2O = std::max(qt[ijk] * xmair * C_M * xmh2o_i, TF(1));
                     // const TF TEMP = temp[ijk];
 
-                  
                     if (k==kstart)
                         {
-		  	   TF vd = vdnh3[ij];
+		  	   decay = vdnh3[ij]*dzi[k] + lti;   // 1/s
                         }
 		    else
 		        { 
-		  	   TF vd = TF(0);
+		  	   decay = lti; // 1/s
 			}
+		    // update tendencies:
+		    tnh3[ijk] -= decay*nh3[ijk];
 
                     
                             
@@ -162,6 +164,8 @@ Chemistry<TF>::Chemistry(Master& masterin, Grid<TF>& gridin, Fields<TF>& fieldsi
     auto& gd = grid.get_grid_data();
 
     sw_chemistry = inputin.get_item<bool>("chemistry", "swchemistry", "", false);
+    lifetime     = inputin.get_item<TF>("chemistry", "lifetime", "", (TF)72000);  // seconds (20 hour default)
+    master.print_message("Lifetime of the tracer:  = %13.5e s \n", lifetime);
 
     if (!sw_chemistry)
         return;
@@ -236,7 +240,6 @@ void Chemistry<TF>::init(Input& inputin)
 
     auto& gd = grid.get_grid_data();
 
-    switch_dt = inputin.get_item<TF>("chemistry", "switch_dt", "", (TF)1e5);
     statistics_counter = 0;
 
     // initialize 2D deposition arrays:
@@ -483,7 +486,7 @@ void Chemistry<TF>::exec(Thermo<TF>& thermo,double sdt,double dt)
         fields.rhoref.data(),
         rfa.data(),
         trfa,
-        dt, sdt, switch_dt,
+        dt, sdt, lifetime,
         gd.istart, gd.iend,
         gd.jstart, gd.jend,
         gd.kstart, gd.kend,

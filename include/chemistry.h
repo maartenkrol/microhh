@@ -67,6 +67,7 @@ class Chemistry
         Fields<TF>& fields;
 
         bool sw_chemistry;
+	TF lifetime; // lifetime of species in seconds
 
         Field3d_operators<TF> field3d_operators;
 
@@ -74,7 +75,6 @@ class Chemistry
 
         Mask<TF> m;     // borrow from Stats to gather statistics chemistry
         int statistics_counter;
-        TF switch_dt;   // to switch between complicated and detailed solver
         std::vector<std::string> jname={"jo31d","jh2o2","jno2","jno3","jn2o5","jch2or","jch2om","jch3o2h"};
         std::vector<std::string> ename={"emi_isop","emi_no"};
         TF jval[8];   // time-interpolated value to pass to the chemistry routine
